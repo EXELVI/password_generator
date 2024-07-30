@@ -95,10 +95,12 @@
             <div class="form-input mt-3">
                 <div>
                     <label for="pattern" class="form-label">Pattern</label>
+                    <small class="text-muted" id="resetPattern"><i class="bi bi-arrow-counterclockwise"></i></small>
                     <small class="text-muted" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-html="true"
                         title="<strong>x</strong> - all characters (that are enabled in checkboxes)<br><strong>L</strong> - uppercase letters<br><strong>l</strong> - lowercase letters<br><strong>d</strong> - numbers<br><strong>s</strong> - special characters">
                         <i class="bi bi-question-circle"></i>
                     </small>
+
                 </div>
                 <input type="text" class="form-control" id="pattern" placeholder="Enter pattern" value="xxxx-">
             </div>
@@ -326,7 +328,7 @@
                 } else if (currentPatternChar === 's') {
                     password += specialChars[Math.floor(Math.random() * specialChars.length)];
                 } else {
-                    password += currentPatternChar;
+                    password += currentPatternChar || " ";
                 }
                 patternIndex++;
                 if (new Date().getTime() - startTime > 2000) {
@@ -534,11 +536,18 @@
             });
 
             document.getElementById('resetLenght').addEventListener('click', function (e) {
-                document.getElementById('length').value = 19;
-                document.getElementById('lengthText').value = 19;
+                var lenghtValue = document.getElementById('length').value;
+                for (let i = lenghtValue; lenghtValue > defaultSettings.length ? i >= defaultSettings.length : i <= defaultSettings.length; lenghtValue > defaultSettings.length ? i-- : i++) {
+                    setTimeout(() => {
+                        console.log(i);
+                        document.getElementById('length').value = i;
+                        document.getElementById('lengthText').value = i;
+                        settings.length = i;
+                        generatePassword();
+                    }, defaultSettings.length < lenghtValue ? (lenghtValue - i) * 10 : (i - lenghtValue) * 10);
+                }
                 settings.length = 19;
                 generatePassword();
-                //rotate animation
                 e.preventDefault();
 
                 for (let i = 0; i < 180; i++) {
@@ -549,12 +558,16 @@
             });
 
             document.getElementById('resetUppercase').addEventListener('click', function () {
-                document.getElementById('uppercase').checked = true;
-                document.getElementById('uppercasePercent').value = 25;
-                settings.uppercase = true;
-                settings.uppercasePercent = 25;
+                var uppercaseValue = document.getElementById('uppercasePercent').value;
+                for (let i = uppercaseValue; uppercaseValue > defaultSettings.uppercasePercent ? i >= defaultSettings.uppercasePercent : i <= defaultSettings.uppercasePercent; uppercaseValue > defaultSettings.uppercasePercent ? i-- : i++) {
+                    setTimeout(() => {
+                        document.getElementById('uppercasePercent').value = i;
+                        updateLabel('uppercasePercent', 'uppercasePercentLabel');
+                        settings.uppercasePercent = i;
+                        generatePassword();
+                    }, defaultSettings.uppercasePercent < uppercaseValue ? (uppercaseValue - i) * 10 : (i - uppercaseValue) * 10);
+                }
                 generatePassword();
-                //rotate animation
                 for (let i = 0; i < 180; i++) {
                     setTimeout(() => {
                         document.querySelector('#resetUppercase').style.transform = `rotate(${i}deg)`;
@@ -563,12 +576,16 @@
             });
 
             document.getElementById('resetLowercase').addEventListener('click', function () {
-                document.getElementById('lowercase').checked = true;
-                document.getElementById('lowercasePercent').value = 25;
-                settings.lowercase = true;
-                settings.lowercasePercent = 25;
+                var lowercaseValue = document.getElementById('lowercasePercent').value;
+                for (let i = lowercaseValue; lowercaseValue > defaultSettings.lowercasePercent ? i >= defaultSettings.lowercasePercent : i <= defaultSettings.lowercasePercent; lowercaseValue > defaultSettings.lowercasePercent ? i-- : i++) {
+                    setTimeout(() => {
+                        document.getElementById('lowercasePercent').value = i;
+                        updateLabel('lowercasePercent', 'lowercasePercentLabel');
+                        settings.lowercasePercent = i;
+                        generatePassword();
+                    }, defaultSettings.lowercasePercent < lowercaseValue ? (lowercaseValue - i) * 10 : (i - lowercaseValue) * 10);
+                }
                 generatePassword();
-                //rotate animation
                 for (let i = 0; i < 180; i++) {
                     setTimeout(() => {
                         document.querySelector('#resetLowercase').style.transform = `rotate(${i}deg)`;
@@ -577,12 +594,16 @@
             });
 
             document.getElementById('resetNumbers').addEventListener('click', function () {
-                document.getElementById('numbers').checked = true;
-                document.getElementById('numbersPercent').value = 25;
-                settings.numbers = true;
-                settings.numbersPercent = 25;
+                var numbersValue = document.getElementById('numbersPercent').value;
+                for (let i = numbersValue; numbersValue > defaultSettings.numbersPercent ? i >= defaultSettings.numbersPercent : i <= defaultSettings.numbersPercent; numbersValue > defaultSettings.numbersPercent ? i-- : i++) {
+                    setTimeout(() => {
+                        document.getElementById('numbersPercent').value = i;
+                        updateLabel('numbersPercent', 'numbersPercentLabel');
+                        settings.numbersPercent = i;
+                        generatePassword();
+                    }, defaultSettings.numbersPercent < numbersValue ? (numbersValue - i) * 10 : (i - numbersValue) * 10);
+                }
                 generatePassword();
-                //rotate animation
                 for (let i = 0; i < 180; i++) {
                     setTimeout(() => {
                         document.querySelector('#resetNumbers').style.transform = `rotate(${i}deg)`;
@@ -591,15 +612,35 @@
             });
 
             document.getElementById('resetSpecialChars').addEventListener('click', function () {
-                document.getElementById('specialChars').checked = true;
-                document.getElementById('specialCharsPercent').value = 25;
-                settings.specialChars = true;
-                settings.specialCharsPercent = 25;
+                var specialCharsValue = document.getElementById('specialCharsPercent').value;
+                for (let i = specialCharsValue; specialCharsValue > defaultSettings.specialCharsPercent ? i >= defaultSettings.specialCharsPercent : i <= defaultSettings.specialCharsPercent; specialCharsValue > defaultSettings.specialCharsPercent ? i-- : i++) {
+                    setTimeout(() => {
+                        document.getElementById('specialCharsPercent').value = i;
+                        updateLabel('specialCharsPercent', 'specialCharsPercentLabel');
+                        settings.specialCharsPercent = i;
+                        generatePassword();
+                    }, defaultSettings.specialCharsPercent < specialCharsValue ? (specialCharsValue - i) * 10 : (i - specialCharsValue) * 10);
+                }
                 generatePassword();
-                //rotate animation
                 for (let i = 0; i < 180; i++) {
                     setTimeout(() => {
                         document.querySelector('#resetSpecialChars').style.transform = `rotate(${i}deg)`;
+                    }, i * 1);
+                }
+            });
+
+            document.getElementById('resetPattern').addEventListener('click', function () {
+                const defaultPattern = defaultSettings.pattern
+                for (let i = 0; i < defaultPattern.length; i++) {
+                    setTimeout(() => {
+                        document.getElementById('pattern').value = defaultPattern.substring(0, i + 1);
+                        settings.pattern = defaultPattern.substring(0, i + 1);
+                    }, i * 30);
+                }
+
+                for (let i = 0; i < 180; i++) {
+                    setTimeout(() => {
+                        document.querySelector('#resetPattern i').style.transform = `rotate(${i}deg)`;
                     }, i * 1);
                 }
             });
