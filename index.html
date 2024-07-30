@@ -30,6 +30,9 @@
                 <input type="range" class="form-range" min="1" value="19" max="60" id="length">
                 <input type="number" class="form-control" id="lengthText" value="19" min="1" max="60">
             </div>
+            <hr>
+            <!-- Checkboxes for x -->
+            <h5>x char</h5>
             <div class="form-check">
                 <input class="form-check-input" type="checkbox" id="uppercase" checked>
                 <label class="form-check-label" for="uppercase">
@@ -54,9 +57,17 @@
                     Special characters
                 </label>
             </div>
+            <hr>
             <!-- Pattern -->
             <div class="form-input mt-3">
-                <label for="pattern" class="form-label">Pattern</label>
+                <div>
+                    <label for="pattern" class="form-label">Pattern</label>
+                    <small class="text-muted" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-html="true"
+                        title="<strong>x</strong> - all characters (that are enabled in checkboxes)<br><strong>L</strong> - uppercase letters<br><strong>l</strong> - lowercase letters<br><strong>d</strong> - numbers<br><strong>s</strong> - special characters">
+                        Info
+                    </small>
+                    
+                </div>
                 <input type="text" class="form-control" id="pattern" placeholder="Enter pattern" value="xxxx-">
             </div>
         </form>
@@ -107,18 +118,45 @@
             if (useLowercase) allChars += lowercaseChars;
             if (useNumbers) allChars += numberChars;
             if (useSpecialChars) allChars += specialChars;
-            
-            if (allChars === '') {
+
+            if (!allChars || allChars.length === 0) {
                 document.getElementById('generatedPassword').value = '';
                 return;
             }
+
             let password = '';
-
-            for (let i = 0; i < length; i++) {
-                const randomIndex = Math.floor(Math.random() * allChars.length);
-                password += allChars[randomIndex];
+            const pattern = document.getElementById('pattern').value;
+            if (pattern) {
+                for (let i = 0; i < length; i++) {
+                    let charSet = '';
+                    switch (pattern[i % pattern.length]) {
+                        case 'L':
+                            charSet = uppercaseChars;
+                            break;
+                        case 'l':
+                            charSet = lowercaseChars;
+                            break;
+                        case 'd':
+                            charSet = numberChars;
+                            break;
+                        case 's':
+                            charSet = specialChars;
+                            break;
+                        case 'x':
+                            charSet = allChars;
+                            break;
+                        default:
+                            charSet = pattern[i % pattern.length];
+                    }
+                    const randomIndex = Math.floor(Math.random() * charSet.length);
+                    password += charSet[randomIndex];
+                }
+            } else {
+                for (let i = 0; i < length; i++) {
+                    const randomIndex = Math.floor(Math.random() * allChars.length);
+                    password += allChars[randomIndex];
+                }
             }
-
 
             document.getElementById('generatedPassword').value = password;
         }
@@ -129,6 +167,10 @@
         }
 
         document.addEventListener('DOMContentLoaded', function () {
+
+            const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
+            const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
+
             document.getElementById('length').addEventListener('input', function () {
                 document.getElementById('lengthText').value = this.value;
                 generatePassword();
@@ -147,7 +189,7 @@
 
             document.getElementById('genPass').addEventListener('click', function (e) {
                 e.preventDefault();
-                generatePassword(); 
+                generatePassword();
             });
 
             document.getElementById('copyCode').addEventListener('click', function (e) {
