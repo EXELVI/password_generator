@@ -34,35 +34,52 @@
             <hr>
             <!-- Checkboxes for x -->
             <h5>x char</h5>
-            <div class="form-check">
+            <div class="form-check mb-2">
                 <input class="form-check-input" type="checkbox" id="uppercase" checked>
                 <label class="form-check-label" for="uppercase">
                     Uppercase letters
                 </label>
+                <input type="range" class="form-range" min="1" value="1" max="100" id="uppercasePercent">
+                <label for="uppercasePercent" class="form-label" id="uppercasePercentLabel">1%</label>
             </div>
-            <div class="form-check">
+            <div class="form-check mb-2">
                 <input class="form-check-input" type="checkbox" id="lowercase" checked>
                 <label class="form-check-label" for="lowercase">
                     Lowercase letters
                 </label>
+                <input type="range" class="form-range" min="1" value="1" max="100" id="lowercasePercent">
+                <label for="lowercasePercent" class="form-label" id="lowercasePercentLabel">1%</label>
             </div>
             <div class="form-check">
                 <input class="form-check-input" type="checkbox" id="numbers" checked>
                 <label class="form-check-label" for="numbers">
                     Numbers
                 </label>
+                <input type="range" class="form-range" min="1" value="1" max="100" id="numbersPercent">
+                <label for="numbersPercent" class="form-label" id="numbersPercentLabel">1%</label>
             </div>
-            <div class="form-check" id="twentyFiveDigitsDiv">
-                <input class="form-check-input" type="checkbox" id="twentyFiveDigits">
-                <label class="form-check-label" for="twentyFiveDigits">
-                    Digits must add up to 25
-                </label>
+            <div id="numbersSettings">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="twentyFiveDigits">
+                    <label class="form-check-label" for="twentyFiveDigits">
+                        Digits must add up to 25
+                    </label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="romanNumbers">
+                    <label class="form-check-label" for="romanNumbers">
+                        Also use roman numbers
+                    </label>
+                </div>
             </div>
-            <div class="form-check">
+
+            <div class="form-check my-2">
                 <input class="form-check-input" type="checkbox" id="specialChars">
                 <label class="form-check-label" for="specialChars">
                     Special characters
                 </label>
+                <input type="range" class="form-range" min="1" value="1" max="100" id="specialCharsPercent">
+                <label for="specialCharsPercent" class="form-label" id="specialCharsPercentLabel">1%</label>
             </div>
             <hr>
             <!-- Pattern -->
@@ -127,13 +144,13 @@
             if (useLowercase) allChars += lowercaseChars;
             if (useNumbers) allChars += numberChars;
             if (useSpecialChars) allChars += specialChars;
-
+            if (useNumbers && document.getElementById('romanNumbers').checked) {
+                allChars += 'IVXLCDM';
+            }
             if (!allChars || allChars.length === 0) {
                 document.getElementById('generatedPassword').value = '';
                 return;
             }
-
-
 
             let password = '';
             const pattern = document.getElementById('pattern').value;
@@ -192,7 +209,6 @@
         }
 
         document.addEventListener('DOMContentLoaded', function () {
-
             const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
             const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
 
@@ -202,7 +218,7 @@
             });
 
             document.getElementById('numbers').addEventListener('change', function () {
-                document.getElementById('twentyFiveDigitsDiv').hidden = !this.checked;
+                document.getElementById('numbersSettings').hidden = !this.checked;
                 if (!this.checked) {
                     document.getElementById('twentyFiveDigits').checked = false;
                 }
@@ -241,6 +257,31 @@
                 setTimeout(() => {
                     document.getElementById('copyCode').innerHTML = "<i class=\"bi bi-clipboard\"></i>";
                 }, 1000);
+            });
+
+            // Synchronize range values with labels
+            const updateLabel = (rangeId, labelId) => {
+                document.getElementById(labelId).innerText = `${document.getElementById(rangeId).value}%`;
+            };
+
+            document.getElementById('uppercasePercent').addEventListener('input', function () {
+                updateLabel('uppercasePercent', 'uppercasePercentLabel');
+                generatePassword();
+            });
+
+            document.getElementById('lowercasePercent').addEventListener('input', function () {
+                updateLabel('lowercasePercent', 'lowercasePercentLabel');
+                generatePassword();
+            });
+
+            document.getElementById('numbersPercent').addEventListener('input', function () {
+                updateLabel('numbersPercent', 'numbersPercentLabel');
+                generatePassword();
+            });
+
+            document.getElementById('specialCharsPercent').addEventListener('input', function () {
+                updateLabel('specialCharsPercent', 'specialCharsPercentLabel');
+                generatePassword();
             });
 
             generatePassword();
