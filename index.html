@@ -35,6 +35,12 @@
                 <input type="range" class="form-range" min="1" value="19" max="60" id="length">
                 <input type="number" class="form-control" id="lengthText" value="19" min="1" max="60">
             </div>
+            <div class="form-check mb-2">
+                <input class="form-check-input" type="checkbox" id="readability" checked>
+                <label class="form-check label" for="readability">
+                    Better Readability
+                </label>
+            </div>
             <hr>
             <!-- Checkboxes for x -->
             <h5>x char</h5>
@@ -63,12 +69,6 @@
                 <label for="numbersPercent" class="form-label" id="numbersPercentLabel">25%</label>
             </div>
             <div id="numbersSettings">
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" id="twentyFiveDigits">
-                    <label class="form-check-label" for="twentyFiveDigits">
-                        Digits must add up to 25
-                    </label>
-                </div>
                 <div class="form-check">
                     <input class="form-check-input" type="checkbox" id="romanNumbers">
                     <label class="form-check-label" for="romanNumbers">
@@ -116,6 +116,29 @@
             </div>
         </div>
 
+        <!-- Alert modal -->
+        <div class="modal fade" id="modalAlert" tabindex="-1" aria-labelledby="modalAlert" aria-hidden="true"
+            aria-modal="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="modalAlertTitle">Title</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p id="modalAlertMessage">Message</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" id="modalBtn" data-bs-dismiss="modal">
+                            Ok
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
@@ -142,7 +165,19 @@
             }
         }
 
-        
+        function modalAlert(title, messageHTML) {
+            return new Promise((resolve, reject) => {
+                const modal = new bootstrap.Modal(
+                    document.getElementById("modalAlert")
+                );
+                document.getElementById("modalAlertTitle").innerText = title;
+                document.getElementById("modalAlertMessage").innerHTML = messageHTML;
+                document.getElementById("modalAlert").addEventListener("hide.bs.modal", (event) => { resolve(); });
+                modal.show();
+            });
+        }
+
+
         function updatePasswordStrength(password) {
             let strength = 0;
             if (password.length >= 8) strength += 20;
@@ -151,20 +186,32 @@
             if (/\d/.test(password)) strength += 20;
             if (/[^A-Za-z0-9]/.test(password)) strength += 20;
 
+            const repeatingChars = password.match(/(.)\1{2,}/g);
+            if (repeatingChars) {
+                strength -= repeatingChars.length * 10;
+            }
+
             const strengthBar = document.getElementById('strengthBar');
             strengthBar.style.width = `${strength}%`;
             strengthBar.setAttribute('aria-valuenow', strength);
 
             let strengthText;
-            if (strength < 40) {
-                strengthText = 'Weak';
+            if (repeatingChars && strength < 40) {
+                strengthText = 'Very weak (repeating characters)';
                 strengthBar.classList.add('bg-danger');
+                strengthBar.classList.remove('bg-warning', 'bg-success');
+            } else if (strength < 40) {
+                strengthText = 'Weak '
+                strengthBar.classList.add('bg-danger');
+                strengthBar.classList.remove('bg-warning', 'bg-success');
             } else if (strength < 80) {
                 strengthText = 'Moderate';
                 strengthBar.classList.add('bg-warning');
+                strengthBar.classList.remove('bg-danger', 'bg-success');
             } else {
                 strengthText = 'Strong';
                 strengthBar.classList.add('bg-success');
+                strengthBar.classList.remove('bg-danger', 'bg-warning');
             }
             strengthBar.innerText = strengthText;
         }
@@ -176,23 +223,29 @@
             const useLowercase = document.getElementById('lowercase').checked;
             const useNumbers = document.getElementById('numbers').checked;
             const useSpecialChars = document.getElementById('specialChars').checked;
+            const betterReadability = document.getElementById('readability').checked;
 
             const uppercasePercent = useUppercase ? parseInt(document.getElementById('uppercasePercent').value) : 0;
             const lowercasePercent = useLowercase ? parseInt(document.getElementById('lowercasePercent').value) : 0;
             const numbersPercent = useNumbers ? parseInt(document.getElementById('numbersPercent').value) : 0;
             const specialCharsPercent = useSpecialChars ? parseInt(document.getElementById('specialCharsPercent').value) : 0;
 
-            const uppercaseChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-            const lowercaseChars = 'abcdefghijklmnopqrstuvwxyz';
-            const numberChars = '0123456789';
-            const specialChars = '!@#$%^&*()_+[]{}|;:,.<>?';
+            var uppercaseChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            var lowercaseChars = 'abcdefghijklmnopqrstuvwxyz';
+            var numberChars = '0123456789';
+            var specialChars = '!@#$%^&*()_+[]{}|;:,.<>?';
+
+            if (betterReadability) {
+                numberChars = '23456789';
+                uppercaseChars = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+                lowercaseChars = 'abcdefghijkmnopqrstuvwxyz';
+            }
 
             let password = '';
-            const twentyFiveDigits = document.getElementById('twentyFiveDigits').checked;
-            let twentyFiveDigitsCount = 0;
 
             const pattern = document.getElementById('pattern').value;
             const allChars = [uppercaseChars, lowercaseChars, numberChars, specialChars].join('');
+
 
             // Calculate the number of each type of character
             const numUppercase = Math.round((uppercasePercent / 100) * length);
@@ -205,39 +258,41 @@
             if (useLowercase) charTypes.push(...Array(numLowercase).fill('L'));
             if (useNumbers) charTypes.push(...Array(numNumbers).fill('N'));
             if (useSpecialChars) charTypes.push(...Array(numSpecialChars).fill('S'));
-
-            let startMillis = new Date().getTime();
-            do {
-                password = '';
-                twentyFiveDigitsCount = 0;
-                let patternIndex = 0;
-                while (password.length < length) {
-                    const currentPatternChar = pattern[patternIndex % pattern.length];
-                    if (currentPatternChar === '-') {
-                        password += '-';
-                    } else if (currentPatternChar === 'x') {
-                        const randomCharType = charTypes.splice(Math.floor(Math.random() * charTypes.length), 1)[0];
-                        if (randomCharType === 'U') {
-                            password += uppercaseChars[Math.floor(Math.random() * uppercaseChars.length)];
-                        } else if (randomCharType === 'L') {
-                            password += lowercaseChars[Math.floor(Math.random() * lowercaseChars.length)];
-                        } else if (randomCharType === 'N') {
-                            const numChar = numberChars[Math.floor(Math.random() * numberChars.length)];
-                            password += numChar;
-                            twentyFiveDigitsCount += parseInt(numChar, 10);
-                        } else if (randomCharType === 'S') {
-                            password += specialChars[Math.floor(Math.random() * specialChars.length)];
-                        }
-                    } else {
-                        password += allChars[Math.floor(Math.random() * allChars.length)];
+            let startTime = new Date().getTime();
+            let patternIndex = 0;
+            while (password.length < length) {
+                const currentPatternChar = pattern[patternIndex % pattern.length];
+                if (currentPatternChar === 'x') {
+                    const randomCharType = charTypes.splice(Math.floor(Math.random() * charTypes.length), 1)[0];
+                    if (randomCharType === 'U') {
+                        password += uppercaseChars[Math.floor(Math.random() * uppercaseChars.length)];
+                    } else if (randomCharType === 'L') {
+                        password += lowercaseChars[Math.floor(Math.random() * lowercaseChars.length)];
+                    } else if (randomCharType === 'N') {
+                        const numChar = numberChars[Math.floor(Math.random() * numberChars.length)];
+                        password += numChar;
+                    } else if (randomCharType === 'S') {
+                        password += specialChars[Math.floor(Math.random() * specialChars.length)];
                     }
-                    patternIndex++;
+                } else if (currentPatternChar === 'L') {
+                    password += lowercaseChars[Math.floor(Math.random() * lowercaseChars.length)];
+                } else if (currentPatternChar === 'U') {
+                    password += uppercaseChars[Math.floor(Math.random() * uppercaseChars.length)];
+                } else if (currentPatternChar === 'd') {
+                    const numChar = numberChars[Math.floor(Math.random() * numberChars.length)];
+                    password += numChar;
+                } else if (currentPatternChar === 's') {
+                    password += specialChars[Math.floor(Math.random() * specialChars.length)];
+                } else {
+                    password += currentPatternChar;
                 }
-            } while (twentyFiveDigits && twentyFiveDigitsCount !== 25 && new Date().getTime() - startMillis < 1000);
-
-            if (twentyFiveDigits && twentyFiveDigitsCount !== 25) {
-                document.getElementById('generatedPassword').value = ''; // Could not generate password with 25 digits
-                return;
+                patternIndex++;
+                if (new Date().getTime() - startTime > 2000) {
+                    console.error('Infinite loop detected');
+                    modalAlert('Error', 'Infinite loop detected');
+                    document.getElementById('resetButton').click();
+                    break;
+                }
             }
 
             document.getElementById('generatedPassword').value = password;
@@ -256,13 +311,6 @@
             document.getElementById('length').addEventListener('input', function () {
                 document.getElementById('lengthText').value = this.value;
                 generatePassword();
-            });
-
-            document.getElementById('numbers').addEventListener('change', function () {
-                document.getElementById('numbersSettings').hidden = !this.checked;
-                if (!this.checked) {
-                    document.getElementById('twentyFiveDigits').checked = false;
-                }
             });
 
             document.getElementById('lengthText').addEventListener('input', function () {
@@ -323,6 +371,17 @@
             const updateLabel = (rangeId, labelId) => {
                 document.getElementById(labelId).innerText = `${document.getElementById(rangeId).value}%`;
             };
+
+            document.getElementById('uppercase').addEventListener('change', function () {
+                document.getElementById('uppercasePercent').disabled = !this.checked;
+                document.getElementById('uppercasePercentLabel').classList.toggle('text-muted');
+            });
+
+            document.getElementById('numbers').addEventListener('change', function () {
+                document.getElementById('numbersSettings').hidden = !this.checked;
+                document.getElementById('numbersPercent').disabled = !this.checked;
+                document.getElementById('numbersPercentLabel').classList.toggle('text-muted');
+            });
 
             document.getElementById('uppercasePercent').addEventListener('input', function () {
                 updateLabel('uppercasePercent', 'uppercasePercentLabel');
