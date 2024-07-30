@@ -78,7 +78,7 @@
             </div>
 
             <div class="form-check my-2">
-                <input class="form-check-input" type="checkbox" id="specialChars">
+                <input class="form-check-input" type="checkbox" id="specialChars" checked>
                 <label class="form-check-label" for="specialChars">
                     Special characters
                 </label>
@@ -144,6 +144,34 @@
         integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
         crossorigin="anonymous"></script>
     <script>
+
+        var settings = {
+            length: 19,
+            uppercase: true,
+            lowercase: true,
+            numbers: true,
+            specialChars: false,
+            uppercasePercent: 25,
+            lowercasePercent: 25,
+            numbersPercent: 25,
+            specialCharsPercent: 25,
+            pattern: 'xxxx-'
+        };
+
+        var defaultSettings = {
+            length: 19,
+            uppercase: true,
+            lowercase: true,
+            numbers: true,
+            specialChars: false,
+            uppercasePercent: 25,
+            lowercasePercent: 25,
+            numbersPercent: 25,
+            specialCharsPercent: 25,
+            pattern: 'xxxx-'
+        };
+
+
         function changeTheme(theme) {
             var themeButton = document.getElementById('changeTheme');
             if (!theme) {
@@ -181,6 +209,7 @@
         function updatePasswordStrength(password) {
             let strength = 0;
             if (password.length >= 8) strength += 20;
+            else strength -= 10;
             if (/[A-Z]/.test(password)) strength += 20;
             if (/[a-z]/.test(password)) strength += 20;
             if (/\d/.test(password)) strength += 20;
@@ -299,22 +328,91 @@
             updatePasswordStrength(password);
         }
 
-        const theme = localStorage.getItem('theme');
+        const theme = localStorage.getItem('tema');
         if (theme) {
             changeTheme(theme);
         }
 
+           const updateLabel = (rangeId, labelId) => {
+                document.getElementById(labelId).innerText = `${document.getElementById(rangeId).value}%`;
+            };
+
         document.addEventListener('DOMContentLoaded', function () {
+
+            document.getElementById('resetButton').addEventListener('click', function () {
+                localStorage.setItem("settings", JSON.stringify(defaultSettings));
+                settings = defaultSettings;
+                document.getElementById('length').value = 19;
+                document.getElementById('lengthText').value = 19;
+                document.getElementById('uppercase').checked = true;
+                document.getElementById('lowercase').checked = true;
+                document.getElementById('numbers').checked = true;
+                document.getElementById('specialChars').checked = false;
+                document.getElementById('uppercasePercent').value = 25;
+                document.getElementById('lowercasePercent').value = 25;
+                document.getElementById('numbersPercent').value = 25;
+                document.getElementById('specialCharsPercent').value = 25;
+                document.getElementById('pattern').value = 'xxxx-';
+                location.reload();
+            });
+
+            settings = JSON.parse(localStorage.getItem("settings")) || settings;
+
+            document.getElementById('length').value = settings.length;
+            document.getElementById('lengthText').value = settings.length;
+            document.getElementById('uppercase').checked = settings.uppercase;
+            document.getElementById('lowercase').checked = settings.lowercase;
+            document.getElementById('numbers').checked = settings.numbers;
+            document.getElementById('specialChars').checked = settings.specialChars;
+            document.getElementById('uppercasePercent').value = settings.uppercasePercent;
+            document.getElementById('lowercasePercent').value = settings.lowercasePercent;
+            document.getElementById('numbersPercent').value = settings.numbersPercent;
+            document.getElementById('specialCharsPercent').value = settings.specialCharsPercent;
+            document.getElementById('pattern').value = settings.pattern;
+            updateLabel('uppercasePercent', 'uppercasePercentLabel');
+            updateLabel('lowercasePercent', 'lowercasePercentLabel');
+            updateLabel('numbersPercent', 'numbersPercentLabel');
+            updateLabel('specialCharsPercent', 'specialCharsPercentLabel');
+
+            if (!settings.numbers) {
+                document.getElementById('numbersSettings').hidden = true;
+                document.getElementById('numbersPercent').disabled = true;
+                document.getElementById('numbersPercentLabel').classList.add('text-muted');
+            }
+
+            if (!settings.uppercase) {
+                document.getElementById('uppercasePercent').disabled = true;
+                document.getElementById('uppercasePercentLabel').classList.add('text-muted');
+            }
+
+            if (!settings.specialChars) {
+                document.getElementById('specialCharsPercent').disabled = true;
+                document.getElementById('specialCharsPercentLabel').classList.add('text-muted');
+            }
+
+            if (!settings.lowercase) {
+                document.getElementById('lowercasePercent').disabled = true;
+                document.getElementById('lowercasePercentLabel').classList.add('text-muted');
+            }
+
+            
+            window.addEventListener("beforeunload", function () {
+                localStorage.setItem("settings", JSON.stringify(settings));
+            });
+
+
             const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
             const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
 
             document.getElementById('length').addEventListener('input', function () {
                 document.getElementById('lengthText').value = this.value;
+                settings.length = parseInt(this.value);
                 generatePassword();
             });
 
             document.getElementById('lengthText').addEventListener('input', function () {
                 let value = parseInt(this.value);
+                settings.length = value;
                 if (isNaN(value) || value < 1) {
                     this.value = 1;
                 } else if (value > 60) {
@@ -340,20 +438,7 @@
                 generatePassword();
             });
 
-            document.getElementById('resetButton').addEventListener('click', function () {
-                document.getElementById('length').value = 19;
-                document.getElementById('lengthText').value = 19;
-                document.getElementById('uppercase').checked = true;
-                document.getElementById('lowercase').checked = true;
-                document.getElementById('numbers').checked = true;
-                document.getElementById('specialChars').checked = false;
-                document.getElementById('uppercasePercent').value = 25;
-                document.getElementById('lowercasePercent').value = 25;
-                document.getElementById('numbersPercent').value = 25;
-                document.getElementById('specialCharsPercent').value = 25;
-                document.getElementById('pattern').value = 'xxxx-';
-                generatePassword();
-            });
+     
 
             document.getElementById('copyCode').addEventListener('click', function (e) {
                 e.preventDefault();
@@ -367,39 +452,58 @@
                 }, 1000);
             });
 
-            // Synchronize range values with labels
-            const updateLabel = (rangeId, labelId) => {
-                document.getElementById(labelId).innerText = `${document.getElementById(rangeId).value}%`;
-            };
+         
 
             document.getElementById('uppercase').addEventListener('change', function () {
                 document.getElementById('uppercasePercent').disabled = !this.checked;
                 document.getElementById('uppercasePercentLabel').classList.toggle('text-muted');
+                settings.uppercase = this.checked;
+                generatePassword();
+            });
+
+            document.getElementById('lowercase').addEventListener('change', function () {
+                document.getElementById('lowercasePercent').disabled = !this.checked;
+                document.getElementById('lowercasePercentLabel').classList.toggle('text-muted');
+                settings.lowercase = this.checked;
+                generatePassword();
             });
 
             document.getElementById('numbers').addEventListener('change', function () {
                 document.getElementById('numbersSettings').hidden = !this.checked;
                 document.getElementById('numbersPercent').disabled = !this.checked;
                 document.getElementById('numbersPercentLabel').classList.toggle('text-muted');
+                settings.numbers = this.checked;
+                generatePassword();
+            });
+
+            document.getElementById('specialChars').addEventListener('change', function () {
+                document.getElementById('specialCharsPercent').disabled = !this.checked;
+                document.getElementById('specialCharsPercentLabel').classList.toggle('text-muted');
+                settings.specialChars = this.checked;
+                generatePassword();
             });
 
             document.getElementById('uppercasePercent').addEventListener('input', function () {
                 updateLabel('uppercasePercent', 'uppercasePercentLabel');
+                settings.uppercasePercent = parseInt(this.value);
                 generatePassword();
             });
 
             document.getElementById('lowercasePercent').addEventListener('input', function () {
                 updateLabel('lowercasePercent', 'lowercasePercentLabel');
+                settings.lowercasePercent = parseInt(this.value);
                 generatePassword();
             });
 
             document.getElementById('numbersPercent').addEventListener('input', function () {
                 updateLabel('numbersPercent', 'numbersPercentLabel');
+                settings.numbersPercent = parseInt(this.value);
                 generatePassword();
             });
 
             document.getElementById('specialCharsPercent').addEventListener('input', function () {
                 updateLabel('specialCharsPercent', 'specialCharsPercentLabel');
+                settings.specialCharsPercent = parseInt(this.value);
                 generatePassword();
             });
 
