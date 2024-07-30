@@ -33,6 +33,7 @@
             <div class="mb-3">
                 <label for="length" class="form-label">Length</label>
                 <small id="resetLenght" class="text-muted"><i class="bi bi-arrow-counterclockwise"></i></small>
+
                 <input type="range" class="form-range" min="1" value="19" max="60" id="length">
                 <input type="number" class="form-control" id="lengthText" value="19" min="1" max="60">
             </div>
@@ -44,7 +45,8 @@
             </div>
             <hr>
             <!-- Checkboxes for x -->
-            <h5>x char</h5>
+            <h5>x char <small class="text-muted" id="equalize"  data-bs-toggle="tooltip" data-bs-placement="top"
+                data-bs-html="true" title="Equalize the percentage of each character type" style="cursor: pointer;"><i class="bi bi-align-center"></i></small></h5>
             <div class="form-check mb-2">
                 <input class="form-check-input" type="checkbox" id="uppercase" checked>
                 <label class="form-check-label" for="uppercase">
@@ -158,10 +160,10 @@
             lowercase: true,
             numbers: true,
             specialChars: false,
-            uppercasePercent: 25,
-            lowercasePercent: 25,
-            numbersPercent: 25,
-            specialCharsPercent: 25,
+            uppercasePercent: 33,
+            lowercasePercent: 33,
+            numbersPercent: 33,
+            specialCharsPercent: 7,
             readability: true,
             pattern: 'xxxx-'
         };
@@ -172,10 +174,10 @@
             lowercase: true,
             numbers: true,
             specialChars: false,
-            uppercasePercent: 25,
-            lowercasePercent: 25,
-            numbersPercent: 25,
-            specialCharsPercent: 25,
+            uppercasePercent: 33,
+            lowercasePercent: 33,
+            numbersPercent: 33,
+            specialCharsPercent: 7,
             readability: true,
             pattern: 'xxxx-'
         };
@@ -233,7 +235,12 @@
             if (repeatingChars) {
                 strength -= repeatingChars.length * 10;
             }
+
+            if (repeatingChars == password) strength = 20; //Only for seeing the text "Very weak (repeating characters)"
+
             if (strength < 0) strength = 1;
+
+            
 
             const strengthBar = document.getElementById('strengthBar');
             strengthBar.style.width = `${strength}%`;
@@ -298,8 +305,8 @@
             const numSpecialChars = Math.round((specialCharsPercent / 100) * length);
 
             const charTypes = [];
-            if (useUppercase) charTypes.push(...Array(numUppercase).fill('U'));
-            if (useLowercase) charTypes.push(...Array(numLowercase).fill('L'));
+            if (useUppercase) charTypes.push(...Array(numUppercase).fill('L'));
+            if (useLowercase) charTypes.push(...Array(numLowercase).fill('l'));
             if (useNumbers) charTypes.push(...Array(numNumbers).fill('N'));
             if (useSpecialChars) charTypes.push(...Array(numSpecialChars).fill('S'));
             let startTime = new Date().getTime();
@@ -330,6 +337,7 @@
                 } else {
                     password += currentPatternChar || " ";
                 }
+
                 patternIndex++;
                 if (new Date().getTime() - startTime > 2000) {
                     console.error('Infinite loop detected');
@@ -527,7 +535,6 @@
 
             document.getElementById('pattern').addEventListener('input', function () {
                 settings.pattern = this.value;
-                generatePassword();
             });
 
             document.getElementById('readability').addEventListener('change', function () {
@@ -557,77 +564,7 @@
                 }
             });
 
-            document.getElementById('resetUppercase').addEventListener('click', function () {
-                var uppercaseValue = document.getElementById('uppercasePercent').value;
-                for (let i = uppercaseValue; uppercaseValue > defaultSettings.uppercasePercent ? i >= defaultSettings.uppercasePercent : i <= defaultSettings.uppercasePercent; uppercaseValue > defaultSettings.uppercasePercent ? i-- : i++) {
-                    setTimeout(() => {
-                        document.getElementById('uppercasePercent').value = i;
-                        updateLabel('uppercasePercent', 'uppercasePercentLabel');
-                        settings.uppercasePercent = i;
-                        generatePassword();
-                    }, defaultSettings.uppercasePercent < uppercaseValue ? (uppercaseValue - i) * 10 : (i - uppercaseValue) * 10);
-                }
-                generatePassword();
-                for (let i = 0; i < 180; i++) {
-                    setTimeout(() => {
-                        document.querySelector('#resetUppercase').style.transform = `rotate(${i}deg)`;
-                    }, i * 1);
-                }
-            });
 
-            document.getElementById('resetLowercase').addEventListener('click', function () {
-                var lowercaseValue = document.getElementById('lowercasePercent').value;
-                for (let i = lowercaseValue; lowercaseValue > defaultSettings.lowercasePercent ? i >= defaultSettings.lowercasePercent : i <= defaultSettings.lowercasePercent; lowercaseValue > defaultSettings.lowercasePercent ? i-- : i++) {
-                    setTimeout(() => {
-                        document.getElementById('lowercasePercent').value = i;
-                        updateLabel('lowercasePercent', 'lowercasePercentLabel');
-                        settings.lowercasePercent = i;
-                        generatePassword();
-                    }, defaultSettings.lowercasePercent < lowercaseValue ? (lowercaseValue - i) * 10 : (i - lowercaseValue) * 10);
-                }
-                generatePassword();
-                for (let i = 0; i < 180; i++) {
-                    setTimeout(() => {
-                        document.querySelector('#resetLowercase').style.transform = `rotate(${i}deg)`;
-                    }, i * 1);
-                }
-            });
-
-            document.getElementById('resetNumbers').addEventListener('click', function () {
-                var numbersValue = document.getElementById('numbersPercent').value;
-                for (let i = numbersValue; numbersValue > defaultSettings.numbersPercent ? i >= defaultSettings.numbersPercent : i <= defaultSettings.numbersPercent; numbersValue > defaultSettings.numbersPercent ? i-- : i++) {
-                    setTimeout(() => {
-                        document.getElementById('numbersPercent').value = i;
-                        updateLabel('numbersPercent', 'numbersPercentLabel');
-                        settings.numbersPercent = i;
-                        generatePassword();
-                    }, defaultSettings.numbersPercent < numbersValue ? (numbersValue - i) * 10 : (i - numbersValue) * 10);
-                }
-                generatePassword();
-                for (let i = 0; i < 180; i++) {
-                    setTimeout(() => {
-                        document.querySelector('#resetNumbers').style.transform = `rotate(${i}deg)`;
-                    }, i * 1);
-                }
-            });
-
-            document.getElementById('resetSpecialChars').addEventListener('click', function () {
-                var specialCharsValue = document.getElementById('specialCharsPercent').value;
-                for (let i = specialCharsValue; specialCharsValue > defaultSettings.specialCharsPercent ? i >= defaultSettings.specialCharsPercent : i <= defaultSettings.specialCharsPercent; specialCharsValue > defaultSettings.specialCharsPercent ? i-- : i++) {
-                    setTimeout(() => {
-                        document.getElementById('specialCharsPercent').value = i;
-                        updateLabel('specialCharsPercent', 'specialCharsPercentLabel');
-                        settings.specialCharsPercent = i;
-                        generatePassword();
-                    }, defaultSettings.specialCharsPercent < specialCharsValue ? (specialCharsValue - i) * 10 : (i - specialCharsValue) * 10);
-                }
-                generatePassword();
-                for (let i = 0; i < 180; i++) {
-                    setTimeout(() => {
-                        document.querySelector('#resetSpecialChars').style.transform = `rotate(${i}deg)`;
-                    }, i * 1);
-                }
-            });
 
             document.getElementById('resetPattern').addEventListener('click', function () {
                 const defaultPattern = defaultSettings.pattern
@@ -644,6 +581,172 @@
                     }, i * 1);
                 }
             });
+
+            document.getElementById('equalize').addEventListener('click', function () {
+                var total = 100;
+                var checked = 0;
+                if (document.getElementById('uppercase').checked) checked++;
+                if (document.getElementById('lowercase').checked) checked++;
+                if (document.getElementById('numbers').checked) checked++;
+                if (document.getElementById('specialChars').checked) checked++;
+
+                var percent = total / checked;
+                if (document.getElementById('uppercase').checked) {
+                    var uppercaseValue = document.getElementById('uppercasePercent').value;
+                    for (let i = uppercaseValue; uppercaseValue > percent ? i >= percent : i <= percent; uppercaseValue > percent ? i-- : i++) {
+                        setTimeout(() => {
+                            document.getElementById('uppercasePercent').value = i;
+                            updateLabel('uppercasePercent', 'uppercasePercentLabel');
+                            settings.uppercasePercent = i;
+                            generatePassword();
+                        }, percent< uppercaseValue ? (uppercaseValue - i) * 10 : (i - uppercaseValue) * 10);
+                    }
+                }
+                if (document.getElementById('lowercase').checked) {
+                    var lowercaseValue = document.getElementById('lowercasePercent').value;
+                    for (let i = lowercaseValue; lowercaseValue > percent ? i >= percent : i <= percent; lowercaseValue > percent ? i-- : i++) {
+                        setTimeout(() => {
+                            document.getElementById('lowercasePercent').value = i;
+                            updateLabel('lowercasePercent', 'lowercasePercentLabel');
+                            settings.lowercasePercent = i;
+                            generatePassword();
+                        }, percent < lowercaseValue ? (lowercaseValue - i) * 10 : (i - lowercaseValue) * 10);
+                    }
+                }
+                if (document.getElementById('numbers').checked) {
+                    var numbersValue = document.getElementById('numbersPercent').value;
+                    for (let i = numbersValue; numbersValue > percent ? i >= percent : i <= percent; numbersValue > percent ? i-- : i++) {
+                        setTimeout(() => {
+                            document.getElementById('numbersPercent').value = i;
+                            updateLabel('numbersPercent', 'numbersPercentLabel');
+                            settings.numbersPercent = i;
+                            generatePassword();
+                        }, percent < numbersValue ? (numbersValue - i) * 10 : (i - numbersValue) * 10);
+                    }
+                }
+                if (document.getElementById('specialChars').checked) {
+                    var specialCharsValue = document.getElementById('specialCharsPercent').value;
+                    for (let i = specialCharsValue; specialCharsValue > percent ? i >= percent : i <= percent; specialCharsValue > percent ? i-- : i++) {
+                        setTimeout(() => {
+                            document.getElementById('specialCharsPercent').value = i;
+                            updateLabel('specialCharsPercent', 'specialCharsPercentLabel');
+                            settings.specialCharsPercent = i;
+                            generatePassword();
+                        }, percent < specialCharsValue ? (specialCharsValue - i) * 10 : (i - specialCharsValue) * 10);
+                    }
+                }
+                generatePassword();
+                for (let i = 0; i < 180; i++) {
+                    setTimeout(() => {
+                        document.querySelector('#equalize i').style.transform = `rotate(${i}deg)`;
+                    }, i * 1);
+                }
+            });
+
+
+            document.getElementById('resetUppercase').addEventListener('click', function () {
+                var total = 100;
+                var percentage = 0;
+                if (document.getElementById('lowercase').checked) {
+                    percentage += parseInt(document.getElementById('lowercasePercent').value)
+                }
+                if (document.getElementById('numbers').checked) {
+                    percentage += parseInt(document.getElementById('numbersPercent').value)
+                }
+                if (document.getElementById('specialChars').checked) {
+                    percentage += parseInt(document.getElementById('specialCharsPercent').value)
+                }
+                var uppercaseValue = 100 - percentage;
+                if (uppercaseValue < 0) {
+                    uppercaseValue = 1;
+                }
+                for (let i = document.getElementById('uppercasePercent').value; document.getElementById('uppercasePercent').value > uppercaseValue ? i >= uppercaseValue : i <= uppercaseValue; document.getElementById('uppercasePercent').value > uppercaseValue ? i-- : i++) {
+                    setTimeout(() => {
+                        document.getElementById('uppercasePercent').value = i;
+                        updateLabel('uppercasePercent', 'uppercasePercentLabel');
+                        settings.uppercasePercent = i;
+                        generatePassword();
+                    }, uppercaseValue < document.getElementById('uppercasePercent').value ? (document.getElementById('uppercasePercent').value - i) * 10 : (i - document.getElementById('uppercasePercent').value) * 10);
+                }
+            })
+
+            document.getElementById('resetLowercase').addEventListener('click', function () {
+                var total = 100;
+                var percentage = 0;
+                if (document.getElementById('uppercase').checked) {
+                    percentage += parseInt(document.getElementById('uppercasePercent').value)
+                }
+                if (document.getElementById('numbers').checked) {
+                    percentage += parseInt(document.getElementById('numbersPercent').value)
+                }
+                if (document.getElementById('specialChars').checked) {
+                    percentage += parseInt(document.getElementById('specialCharsPercent').value)
+                }
+                var lowercaseValue = 100 - percentage;
+                if (lowercaseValue < 0) {
+                    lowercaseValue = 1;
+                }
+                for (let i = document.getElementById('lowercasePercent').value; document.getElementById('lowercasePercent').value > lowercaseValue ? i >= lowercaseValue : i <= lowercaseValue; document.getElementById('lowercasePercent').value > lowercaseValue ? i-- : i++) {
+                    setTimeout(() => {
+                        document.getElementById('lowercasePercent').value = i;
+                        updateLabel('lowercasePercent', 'lowercasePercentLabel');
+                        settings.lowercasePercent = i;
+                        generatePassword();
+                    }, lowercaseValue < document.getElementById('lowercasePercent').value ? (document.getElementById('lowercasePercent').value - i) * 10 : (i - document.getElementById('lowercasePercent').value) * 10);
+                }
+            })
+
+            document.getElementById('resetNumbers').addEventListener('click', function () {
+                var total = 100;
+                var percentage = 0;
+                if (document.getElementById('uppercase').checked) {
+                    percentage += parseInt(document.getElementById('uppercasePercent').value)
+                }
+                if (document.getElementById('lowercase').checked) {
+                    percentage += parseInt(document.getElementById('lowercasePercent').value)
+                }
+                if (document.getElementById('specialChars').checked) {
+                    percentage += parseInt(document.getElementById('specialCharsPercent').value)
+                }
+                var numbersValue = 100 - percentage;
+                if (numbersValue < 0) {
+                    numbersValue = 1;
+                }
+                for (let i = document.getElementById('numbersPercent').value; document.getElementById('numbersPercent').value > numbersValue ? i >= numbersValue : i <= numbersValue; document.getElementById('numbersPercent').value > numbersValue ? i-- : i++) {
+                    setTimeout(() => {
+                        document.getElementById('numbersPercent').value = i;
+                        updateLabel('numbersPercent', 'numbersPercentLabel');
+                        settings.numbersPercent = i;
+                        generatePassword();
+                    }, numbersValue < document.getElementById('numbersPercent').value ? (document.getElementById('numbersPercent').value - i) * 10 : (i - document.getElementById('numbersPercent').value) * 10);
+                }
+            })
+
+            document.getElementById('resetSpecialChars').addEventListener('click', function () {
+                var total = 100;
+                var percentage = 0;
+                if (document.getElementById('uppercase').checked) {
+                    percentage += parseInt(document.getElementById('uppercasePercent').value)
+                }
+                if (document.getElementById('lowercase').checked) {
+                    percentage += parseInt(document.getElementById('lowercasePercent').value)
+                }
+                if (document.getElementById('numbers').checked) {
+                    percentage += parseInt(document.getElementById('numbersPercent').value)
+                }
+                var specialCharsValue = 100 - percentage;
+                if (specialCharsValue < 0) {
+                    specialCharsValue = 1;
+                }
+                for (let i = document.getElementById('specialCharsPercent').value; document.getElementById('specialCharsPercent').value > specialCharsValue ? i >= specialCharsValue : i <= specialCharsValue; document.getElementById('specialCharsPercent').value > specialCharsValue ? i-- : i++) {
+                    setTimeout(() => {
+                        document.getElementById('specialCharsPercent').value = i;
+                        updateLabel('specialCharsPercent', 'specialCharsPercentLabel');
+                        settings.specialCharsPercent = i;
+                        generatePassword();
+                    }, specialCharsValue < document.getElementById('specialCharsPercent').value ? (document.getElementById('specialCharsPercent').value - i) * 10 : (i - document.getElementById('specialCharsPercent').value) * 10);
+                }
+            })
 
 
 
