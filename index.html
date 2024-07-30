@@ -32,6 +32,7 @@
         <form id="passwordForm">
             <div class="mb-3">
                 <label for="length" class="form-label">Length</label>
+                <small id="resetLenght" class="text-muted"><i class="bi bi-arrow-counterclockwise"></i></small>
                 <input type="range" class="form-range" min="1" value="19" max="60" id="length">
                 <input type="number" class="form-control" id="lengthText" value="19" min="1" max="60">
             </div>
@@ -49,6 +50,7 @@
                 <label class="form-check-label" for="uppercase">
                     Uppercase letters
                 </label>
+                <small class="text-muted" id="resetUppercase"><i class="bi bi-arrow-counterclockwise"></i></small>
                 <input type="range" class="form-range" min="1" value="25" max="100" id="uppercasePercent">
                 <label for="uppercasePercent" class="form-label" id="uppercasePercentLabel">25%</label>
             </div>
@@ -57,6 +59,7 @@
                 <label class="form-check-label" for="lowercase">
                     Lowercase letters
                 </label>
+                <small class="text-muted" id="resetLowercase"><i class="bi bi-arrow-counterclockwise"></i></small>
                 <input type="range" class="form-range" min="1" value="25" max="100" id="lowercasePercent">
                 <label for="lowercasePercent" class="form-label" id="lowercasePercentLabel">25%</label>
             </div>
@@ -65,6 +68,7 @@
                 <label class="form-check-label" for="numbers">
                     Numbers
                 </label>
+                <small class="text-muted" id="resetNumbers"><i class="bi bi-arrow-counterclockwise"></i></small>
                 <input type="range" class="form-range" min="1" value="25" max="100" id="numbersPercent">
                 <label for="numbersPercent" class="form-label" id="numbersPercentLabel">25%</label>
             </div>
@@ -82,6 +86,7 @@
                 <label class="form-check-label" for="specialChars">
                     Special characters
                 </label>
+                <small class="text-muted" id="resetSpecialChars"><i class="bi bi-arrow-counterclockwise"></i></small>
                 <input type="range" class="form-range" min="1" value="25" max="100" id="specialCharsPercent">
                 <label for="specialCharsPercent" class="form-label" id="specialCharsPercentLabel">25%</label>
             </div>
@@ -155,6 +160,7 @@
             lowercasePercent: 25,
             numbersPercent: 25,
             specialCharsPercent: 25,
+            readability: true,
             pattern: 'xxxx-'
         };
 
@@ -168,6 +174,7 @@
             lowercasePercent: 25,
             numbersPercent: 25,
             specialCharsPercent: 25,
+            readability: true,
             pattern: 'xxxx-'
         };
 
@@ -208,17 +215,23 @@
 
         function updatePasswordStrength(password) {
             let strength = 0;
-            if (password.length >= 8) strength += 20;
+            if (password.length >= 8) strength += 10;
+            else strength -= 10;
+            if (password.length >= 12) strength += 10;
             else strength -= 10;
             if (/[A-Z]/.test(password)) strength += 20;
             if (/[a-z]/.test(password)) strength += 20;
             if (/\d/.test(password)) strength += 20;
             if (/[^A-Za-z0-9]/.test(password)) strength += 20;
 
+            if (password.length >= 16) strength += 10;
+            else strength -= 10;
+
             const repeatingChars = password.match(/(.)\1{2,}/g);
             if (repeatingChars) {
                 strength -= repeatingChars.length * 10;
             }
+            if (strength < 0) strength = 1;
 
             const strengthBar = document.getElementById('strengthBar');
             strengthBar.style.width = `${strength}%`;
@@ -293,9 +306,9 @@
                 const currentPatternChar = pattern[patternIndex % pattern.length];
                 if (currentPatternChar === 'x') {
                     const randomCharType = charTypes.splice(Math.floor(Math.random() * charTypes.length), 1)[0];
-                    if (randomCharType === 'U') {
+                    if (randomCharType === 'L') {
                         password += uppercaseChars[Math.floor(Math.random() * uppercaseChars.length)];
-                    } else if (randomCharType === 'L') {
+                    } else if (randomCharType === 'l') {
                         password += lowercaseChars[Math.floor(Math.random() * lowercaseChars.length)];
                     } else if (randomCharType === 'N') {
                         const numChar = numberChars[Math.floor(Math.random() * numberChars.length)];
@@ -303,9 +316,9 @@
                     } else if (randomCharType === 'S') {
                         password += specialChars[Math.floor(Math.random() * specialChars.length)];
                     }
-                } else if (currentPatternChar === 'L') {
+                } else if (currentPatternChar === 'l') {
                     password += lowercaseChars[Math.floor(Math.random() * lowercaseChars.length)];
-                } else if (currentPatternChar === 'U') {
+                } else if (currentPatternChar === 'L') {
                     password += uppercaseChars[Math.floor(Math.random() * uppercaseChars.length)];
                 } else if (currentPatternChar === 'd') {
                     const numChar = numberChars[Math.floor(Math.random() * numberChars.length)];
@@ -318,8 +331,9 @@
                 patternIndex++;
                 if (new Date().getTime() - startTime > 2000) {
                     console.error('Infinite loop detected');
-                    modalAlert('Error', 'Infinite loop detected');
-                    document.getElementById('resetButton').click();
+                    modalAlert('Error', 'Infinite loop detected').then(() => {
+                        document.getElementById('resetButton').click();
+                    });
                     break;
                 }
             }
@@ -333,9 +347,9 @@
             changeTheme(theme);
         }
 
-           const updateLabel = (rangeId, labelId) => {
-                document.getElementById(labelId).innerText = `${document.getElementById(rangeId).value}%`;
-            };
+        const updateLabel = (rangeId, labelId) => {
+            document.getElementById(labelId).innerText = `${document.getElementById(rangeId).value}%`;
+        };
 
         document.addEventListener('DOMContentLoaded', function () {
 
@@ -353,6 +367,7 @@
                 document.getElementById('numbersPercent').value = 25;
                 document.getElementById('specialCharsPercent').value = 25;
                 document.getElementById('pattern').value = 'xxxx-';
+                document.getElementById('readability').checked = true;
                 location.reload();
             });
 
@@ -369,6 +384,7 @@
             document.getElementById('numbersPercent').value = settings.numbersPercent;
             document.getElementById('specialCharsPercent').value = settings.specialCharsPercent;
             document.getElementById('pattern').value = settings.pattern;
+            document.getElementById('readability').checked = settings.readability;
             updateLabel('uppercasePercent', 'uppercasePercentLabel');
             updateLabel('lowercasePercent', 'lowercasePercentLabel');
             updateLabel('numbersPercent', 'numbersPercentLabel');
@@ -395,7 +411,7 @@
                 document.getElementById('lowercasePercentLabel').classList.add('text-muted');
             }
 
-            
+
             window.addEventListener("beforeunload", function () {
                 localStorage.setItem("settings", JSON.stringify(settings));
             });
@@ -438,7 +454,7 @@
                 generatePassword();
             });
 
-     
+
 
             document.getElementById('copyCode').addEventListener('click', function (e) {
                 e.preventDefault();
@@ -452,7 +468,7 @@
                 }, 1000);
             });
 
-         
+
 
             document.getElementById('uppercase').addEventListener('change', function () {
                 document.getElementById('uppercasePercent').disabled = !this.checked;
@@ -506,6 +522,89 @@
                 settings.specialCharsPercent = parseInt(this.value);
                 generatePassword();
             });
+
+            document.getElementById('pattern').addEventListener('input', function () {
+                settings.pattern = this.value;
+                generatePassword();
+            });
+
+            document.getElementById('readability').addEventListener('change', function () {
+                settings.readability = this.checked;
+                generatePassword();
+            });
+
+            document.getElementById('resetLenght').addEventListener('click', function (e) {
+                document.getElementById('length').value = 19;
+                document.getElementById('lengthText').value = 19;
+                settings.length = 19;
+                generatePassword();
+                //rotate animation
+                e.preventDefault();
+
+                for (let i = 0; i < 180; i++) {
+                    setTimeout(() => {
+                        document.querySelector('#resetLenght i').style.transform = `rotate(${i}deg)`;
+                    }, i * 1);
+                }
+            });
+
+            document.getElementById('resetUppercase').addEventListener('click', function () {
+                document.getElementById('uppercase').checked = true;
+                document.getElementById('uppercasePercent').value = 25;
+                settings.uppercase = true;
+                settings.uppercasePercent = 25;
+                generatePassword();
+                //rotate animation
+                for (let i = 0; i < 180; i++) {
+                    setTimeout(() => {
+                        document.querySelector('#resetUppercase').style.transform = `rotate(${i}deg)`;
+                    }, i * 1);
+                }
+            });
+
+            document.getElementById('resetLowercase').addEventListener('click', function () {
+                document.getElementById('lowercase').checked = true;
+                document.getElementById('lowercasePercent').value = 25;
+                settings.lowercase = true;
+                settings.lowercasePercent = 25;
+                generatePassword();
+                //rotate animation
+                for (let i = 0; i < 180; i++) {
+                    setTimeout(() => {
+                        document.querySelector('#resetLowercase').style.transform = `rotate(${i}deg)`;
+                    }, i * 1);
+                }
+            });
+
+            document.getElementById('resetNumbers').addEventListener('click', function () {
+                document.getElementById('numbers').checked = true;
+                document.getElementById('numbersPercent').value = 25;
+                settings.numbers = true;
+                settings.numbersPercent = 25;
+                generatePassword();
+                //rotate animation
+                for (let i = 0; i < 180; i++) {
+                    setTimeout(() => {
+                        document.querySelector('#resetNumbers').style.transform = `rotate(${i}deg)`;
+                    }, i * 1);
+                }
+            });
+
+            document.getElementById('resetSpecialChars').addEventListener('click', function () {
+                document.getElementById('specialChars').checked = true;
+                document.getElementById('specialCharsPercent').value = 25;
+                settings.specialChars = true;
+                settings.specialCharsPercent = 25;
+                generatePassword();
+                //rotate animation
+                for (let i = 0; i < 180; i++) {
+                    setTimeout(() => {
+                        document.querySelector('#resetSpecialChars').style.transform = `rotate(${i}deg)`;
+                    }, i * 1);
+                }
+            });
+
+
 
             generatePassword();
         });
