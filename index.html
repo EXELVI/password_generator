@@ -39,24 +39,24 @@
                 <label class="form-check-label" for="uppercase">
                     Uppercase letters
                 </label>
-                <input type="range" class="form-range" min="1" value="1" max="100" id="uppercasePercent">
-                <label for="uppercasePercent" class="form-label" id="uppercasePercentLabel">1%</label>
+                <input type="range" class="form-range" min="1" value="25" max="100" id="uppercasePercent">
+                <label for="uppercasePercent" class="form-label" id="uppercasePercentLabel">25%</label>
             </div>
             <div class="form-check mb-2">
                 <input class="form-check-input" type="checkbox" id="lowercase" checked>
                 <label class="form-check-label" for="lowercase">
                     Lowercase letters
                 </label>
-                <input type="range" class="form-range" min="1" value="1" max="100" id="lowercasePercent">
-                <label for="lowercasePercent" class="form-label" id="lowercasePercentLabel">1%</label>
+                <input type="range" class="form-range" min="1" value="25" max="100" id="lowercasePercent">
+                <label for="lowercasePercent" class="form-label" id="lowercasePercentLabel">25%</label>
             </div>
             <div class="form-check">
                 <input class="form-check-input" type="checkbox" id="numbers" checked>
                 <label class="form-check-label" for="numbers">
                     Numbers
                 </label>
-                <input type="range" class="form-range" min="1" value="1" max="100" id="numbersPercent">
-                <label for="numbersPercent" class="form-label" id="numbersPercentLabel">1%</label>
+                <input type="range" class="form-range" min="1" value="25" max="100" id="numbersPercent">
+                <label for="numbersPercent" class="form-label" id="numbersPercentLabel">25%</label>
             </div>
             <div id="numbersSettings">
                 <div class="form-check">
@@ -78,8 +78,8 @@
                 <label class="form-check-label" for="specialChars">
                     Special characters
                 </label>
-                <input type="range" class="form-range" min="1" value="1" max="100" id="specialCharsPercent">
-                <label for="specialCharsPercent" class="form-label" id="specialCharsPercentLabel">1%</label>
+                <input type="range" class="form-range" min="1" value="25" max="100" id="specialCharsPercent">
+                <label for="specialCharsPercent" class="form-label" id="specialCharsPercentLabel">25%</label>
             </div>
             <hr>
             <!-- Pattern -->
@@ -90,7 +90,6 @@
                         title="<strong>x</strong> - all characters (that are enabled in checkboxes)<br><strong>L</strong> - uppercase letters<br><strong>l</strong> - lowercase letters<br><strong>d</strong> - numbers<br><strong>s</strong> - special characters">
                         <i class="bi bi-question-circle"></i>
                     </small>
-
                 </div>
                 <input type="text" class="form-control" id="pattern" placeholder="Enter pattern" value="xxxx-">
             </div>
@@ -128,71 +127,133 @@
         }
 
         function generatePassword() {
-            const length = document.getElementById('length').value;
+            const length = parseInt(document.getElementById('length').value);
             const useUppercase = document.getElementById('uppercase').checked;
             const useLowercase = document.getElementById('lowercase').checked;
             const useNumbers = document.getElementById('numbers').checked;
             const useSpecialChars = document.getElementById('specialChars').checked;
+
+            const uppercasePercent = useUppercase ? parseInt(document.getElementById('uppercasePercent').value) : 0;
+            const lowercasePercent = useLowercase ? parseInt(document.getElementById('lowercasePercent').value) : 0;
+            const numbersPercent = useNumbers ? parseInt(document.getElementById('numbersPercent').value) : 0;
+            const specialCharsPercent = useSpecialChars ? parseInt(document.getElementById('specialCharsPercent').value) : 0;
 
             const uppercaseChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
             const lowercaseChars = 'abcdefghijklmnopqrstuvwxyz';
             const numberChars = '0123456789';
             const specialChars = '!@#$%^&*()_+[]{}|;:,.<>?';
 
-            let allChars = '';
-            if (useUppercase) allChars += uppercaseChars;
-            if (useLowercase) allChars += lowercaseChars;
-            if (useNumbers) allChars += numberChars;
-            if (useSpecialChars) allChars += specialChars;
-            if (useNumbers && document.getElementById('romanNumbers').checked) {
-                allChars += 'IVXLCDM';
-            }
-            if (!allChars || allChars.length === 0) {
-                document.getElementById('generatedPassword').value = '';
-                return;
-            }
-
             let password = '';
-            const pattern = document.getElementById('pattern').value;
             const twentyFiveDigits = document.getElementById('twentyFiveDigits').checked;
             let twentyFiveDigitsCount = 0;
+
+            const getCharCount = (percent) => Math.floor((percent / 100) * length);
+
+            const totalPercent = uppercasePercent + lowercasePercent + numbersPercent + specialCharsPercent;
+            const distributeRemainder = totalPercent < 100 ? Math.floor((100 - totalPercent) / 4) : 0;
+
+            const uppercaseCount = getCharCount(uppercasePercent + distributeRemainder);
+            const lowercaseCount = getCharCount(lowercasePercent + distributeRemainder);
+            const numbersCount = getCharCount(numbersPercent + distributeRemainder);
+            const specialCharsCount = getCharCount(specialCharsPercent + distributeRemainder);
+
+            const pattern = document.getElementById('pattern').value;
+            const allChars = [uppercaseChars, lowercaseChars, numberChars, specialChars].join('');
+
             let startMillis = new Date().getTime();
             do {
                 password = '';
                 twentyFiveDigitsCount = 0;
-                if (pattern) {
-                    for (let i = 0; i < length; i++) {
-                        let charSet = '';
-                        switch (pattern[i % pattern.length]) {
-                            case 'L':
+                let counts = {
+                    uppercase: 0,
+                    lowercase: 0,
+                    numbers: 0,
+                    specialChars: 0
+                };
+
+                for (let i = 0; i < length; i++) {
+                    let charSet = '';
+                    switch (pattern[i % pattern.length]) {
+                        case 'L':
+                            charSet = uppercaseChars;
+                            counts.uppercase++;
+                            break;
+                        case 'l':
+                            charSet = lowercaseChars;
+                            counts.lowercase++;
+                            break;
+                        case 'd':
+                            charSet = numberChars;
+                            counts.numbers++;
+                            break;
+                        case 's':
+                            charSet = specialChars;
+                            counts.specialChars++;
+                            break;
+                        case 'x':
+                            if (counts.uppercase < uppercaseCount) {
                                 charSet = uppercaseChars;
-                                break;
-                            case 'l':
+                                counts.uppercase++;
+                            } else if (counts.lowercase < lowercaseCount) {
                                 charSet = lowercaseChars;
-                                break;
-                            case 'd':
+                                counts.lowercase++;
+                            } else if (counts.numbers < numbersCount) {
                                 charSet = numberChars;
-                                break;
-                            case 's':
+                                counts.numbers++;
+                            } else if (counts.specialChars < specialCharsCount) {
                                 charSet = specialChars;
+                                counts.specialChars++;
+                            }
+                            break;
+                        default:
+                            charSet = pattern[i % pattern.length];
+                    }
+
+                    const randomIndex = Math.floor(Math.random() * charSet.length);
+                    password += charSet[randomIndex];
+
+                    if (charSet === numberChars) {
+                        twentyFiveDigitsCount += parseInt(charSet[randomIndex], 10);
+                    }
+                }
+
+                // Adjust for distribution if we have remaining characters to add
+                const remainingChars = length - password.length;
+                if (remainingChars > 0) {
+                    for (let i = 0; i < remainingChars; i++) {
+                        const randomSet = Math.floor(Math.random() * 4);
+                        let charSet = '';
+                        switch (randomSet) {
+                            case 0:
+                                if (counts.uppercase < uppercaseCount) {
+                                    charSet = uppercaseChars;
+                                    counts.uppercase++;
+                                }
                                 break;
-                            case 'x':
-                                charSet = allChars;
+                            case 1:
+                                if (counts.lowercase < lowercaseCount) {
+                                    charSet = lowercaseChars;
+                                    counts.lowercase++;
+                                }
                                 break;
-                            default:
-                                charSet = pattern[i % pattern.length];
+                            case 2:
+                                if (counts.numbers < numbersCount) {
+                                    charSet = numberChars;
+                                    counts.numbers++;
+                                    twentyFiveDigitsCount += parseInt(numberChars[randomSet], 10);
+                                }
+                                break;
+                            case 3:
+                                if (counts.specialChars < specialCharsCount) {
+                                    charSet = specialChars;
+                                    counts.specialChars++;
+                                }
+                                break;
                         }
                         const randomIndex = Math.floor(Math.random() * charSet.length);
                         password += charSet[randomIndex];
                     }
-                } else {
-                    for (let i = 0; i < length; i++) {
-                        const randomIndex = Math.floor(Math.random() * allChars.length);
-                        password += allChars[randomIndex];
-                    }
                 }
-
-                twentyFiveDigitsCount += password.split("").filter(c => c >= '0' && c <= '9').map(c => parseInt(c)).reduce((a, b) => a + b, 0);
             } while (twentyFiveDigits && twentyFiveDigitsCount !== 25 && new Date().getTime() - startMillis < 1000);
 
             if (twentyFiveDigits && twentyFiveDigitsCount !== 25) {
