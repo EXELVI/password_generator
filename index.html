@@ -18,7 +18,11 @@
             Settings
         </button>
         <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-            <li><button class="dropdown-item" type="button" id="changeTheme">Change Theme</button></li>
+            <li><button class="dropdown-item" type="button" id="changeTheme"><i class="bi bi-sun-fill"></i> Change
+                    theme</button>
+            <li><button class="dropdown-item" id="resetButton"><i class="bi bi-arrow-counterclockwise"></i> Reset
+                </button>
+            </li>
         </ul>
     </div>
 
@@ -104,27 +108,67 @@
                         class="bi bi-clipboard"></i></span>
             </div>
         </div>
+        <div class="mt-3">
+            <label for="passwordStrength" class="form-label">Password Strength</label>
+            <div id="passwordStrength" class="progress">
+                <div id="strengthBar" class="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0"
+                    aria-valuemin="0" aria-valuemax="100">Weak</div>
+            </div>
+        </div>
+
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
         crossorigin="anonymous"></script>
     <script>
         function changeTheme(theme) {
+            var themeButton = document.getElementById('changeTheme');
             if (!theme) {
                 var temaaaStorage = localStorage.getItem('tema');
                 if (temaaaStorage != "dark") {
                     document.body.setAttribute('data-bs-theme', "dark");
                     localStorage.setItem('tema', "dark");
+                    themeButton.innerHTML = "<i class=\"bi bi-sun-fill\"></i> Change theme";
                 }
                 else {
                     document.body.setAttribute('data-bs-theme', "light");
                     localStorage.setItem('tema', "light")
+                    themeButton.innerHTML = "<i class=\"bi bi-moon-stars-fill\"></i> Change theme";
                 }
             } else if (theme === 'dark' || theme === 'light') {
                 document.body.setAttribute('data-bs-theme', theme);
                 localStorage.setItem('tema', theme);
+                themeButton.innerHTML = theme === 'dark' ? "<i class=\"bi bi-sun-fill\"></i> Change theme" : "<i class=\"bi bi-moon-stars-fill\"></i> Change theme";
             }
         }
+
+        
+        function updatePasswordStrength(password) {
+            let strength = 0;
+            if (password.length >= 8) strength += 20;
+            if (/[A-Z]/.test(password)) strength += 20;
+            if (/[a-z]/.test(password)) strength += 20;
+            if (/\d/.test(password)) strength += 20;
+            if (/[^A-Za-z0-9]/.test(password)) strength += 20;
+
+            const strengthBar = document.getElementById('strengthBar');
+            strengthBar.style.width = `${strength}%`;
+            strengthBar.setAttribute('aria-valuenow', strength);
+
+            let strengthText;
+            if (strength < 40) {
+                strengthText = 'Weak';
+                strengthBar.classList.add('bg-danger');
+            } else if (strength < 80) {
+                strengthText = 'Moderate';
+                strengthBar.classList.add('bg-warning');
+            } else {
+                strengthText = 'Strong';
+                strengthBar.classList.add('bg-success');
+            }
+            strengthBar.innerText = strengthText;
+        }
+
 
         function generatePassword() {
             const length = parseInt(document.getElementById('length').value);
@@ -147,112 +191,47 @@
             const twentyFiveDigits = document.getElementById('twentyFiveDigits').checked;
             let twentyFiveDigitsCount = 0;
 
-            const getCharCount = (percent) => Math.floor((percent / 100) * length);
-
-            const totalPercent = uppercasePercent + lowercasePercent + numbersPercent + specialCharsPercent;
-            const distributeRemainder = totalPercent < 100 ? Math.floor((100 - totalPercent) / 4) : 0;
-
-            const uppercaseCount = getCharCount(uppercasePercent + distributeRemainder);
-            const lowercaseCount = getCharCount(lowercasePercent + distributeRemainder);
-            const numbersCount = getCharCount(numbersPercent + distributeRemainder);
-            const specialCharsCount = getCharCount(specialCharsPercent + distributeRemainder);
-
             const pattern = document.getElementById('pattern').value;
             const allChars = [uppercaseChars, lowercaseChars, numberChars, specialChars].join('');
+
+            // Calculate the number of each type of character
+            const numUppercase = Math.round((uppercasePercent / 100) * length);
+            const numLowercase = Math.round((lowercasePercent / 100) * length);
+            const numNumbers = Math.round((numbersPercent / 100) * length);
+            const numSpecialChars = Math.round((specialCharsPercent / 100) * length);
+
+            const charTypes = [];
+            if (useUppercase) charTypes.push(...Array(numUppercase).fill('U'));
+            if (useLowercase) charTypes.push(...Array(numLowercase).fill('L'));
+            if (useNumbers) charTypes.push(...Array(numNumbers).fill('N'));
+            if (useSpecialChars) charTypes.push(...Array(numSpecialChars).fill('S'));
 
             let startMillis = new Date().getTime();
             do {
                 password = '';
                 twentyFiveDigitsCount = 0;
-                let counts = {
-                    uppercase: 0,
-                    lowercase: 0,
-                    numbers: 0,
-                    specialChars: 0
-                };
-
-                for (let i = 0; i < length; i++) {
-                    let charSet = '';
-                    switch (pattern[i % pattern.length]) {
-                        case 'L':
-                            charSet = uppercaseChars;
-                            counts.uppercase++;
-                            break;
-                        case 'l':
-                            charSet = lowercaseChars;
-                            counts.lowercase++;
-                            break;
-                        case 'd':
-                            charSet = numberChars;
-                            counts.numbers++;
-                            break;
-                        case 's':
-                            charSet = specialChars;
-                            counts.specialChars++;
-                            break;
-                        case 'x':
-                            if (counts.uppercase < uppercaseCount) {
-                                charSet = uppercaseChars;
-                                counts.uppercase++;
-                            } else if (counts.lowercase < lowercaseCount) {
-                                charSet = lowercaseChars;
-                                counts.lowercase++;
-                            } else if (counts.numbers < numbersCount) {
-                                charSet = numberChars;
-                                counts.numbers++;
-                            } else if (counts.specialChars < specialCharsCount) {
-                                charSet = specialChars;
-                                counts.specialChars++;
-                            }
-                            break;
-                        default:
-                            charSet = pattern[i % pattern.length];
-                    }
-
-                    const randomIndex = Math.floor(Math.random() * charSet.length);
-                    password += charSet[randomIndex];
-
-                    if (charSet === numberChars) {
-                        twentyFiveDigitsCount += parseInt(charSet[randomIndex], 10);
-                    }
-                }
-
-                // Adjust for distribution if we have remaining characters to add
-                const remainingChars = length - password.length;
-                if (remainingChars > 0) {
-                    for (let i = 0; i < remainingChars; i++) {
-                        const randomSet = Math.floor(Math.random() * 4);
-                        let charSet = '';
-                        switch (randomSet) {
-                            case 0:
-                                if (counts.uppercase < uppercaseCount) {
-                                    charSet = uppercaseChars;
-                                    counts.uppercase++;
-                                }
-                                break;
-                            case 1:
-                                if (counts.lowercase < lowercaseCount) {
-                                    charSet = lowercaseChars;
-                                    counts.lowercase++;
-                                }
-                                break;
-                            case 2:
-                                if (counts.numbers < numbersCount) {
-                                    charSet = numberChars;
-                                    counts.numbers++;
-                                    twentyFiveDigitsCount += parseInt(numberChars[randomSet], 10);
-                                }
-                                break;
-                            case 3:
-                                if (counts.specialChars < specialCharsCount) {
-                                    charSet = specialChars;
-                                    counts.specialChars++;
-                                }
-                                break;
+                let patternIndex = 0;
+                while (password.length < length) {
+                    const currentPatternChar = pattern[patternIndex % pattern.length];
+                    if (currentPatternChar === '-') {
+                        password += '-';
+                    } else if (currentPatternChar === 'x') {
+                        const randomCharType = charTypes.splice(Math.floor(Math.random() * charTypes.length), 1)[0];
+                        if (randomCharType === 'U') {
+                            password += uppercaseChars[Math.floor(Math.random() * uppercaseChars.length)];
+                        } else if (randomCharType === 'L') {
+                            password += lowercaseChars[Math.floor(Math.random() * lowercaseChars.length)];
+                        } else if (randomCharType === 'N') {
+                            const numChar = numberChars[Math.floor(Math.random() * numberChars.length)];
+                            password += numChar;
+                            twentyFiveDigitsCount += parseInt(numChar, 10);
+                        } else if (randomCharType === 'S') {
+                            password += specialChars[Math.floor(Math.random() * specialChars.length)];
                         }
-                        const randomIndex = Math.floor(Math.random() * charSet.length);
-                        password += charSet[randomIndex];
+                    } else {
+                        password += allChars[Math.floor(Math.random() * allChars.length)];
                     }
+                    patternIndex++;
                 }
             } while (twentyFiveDigits && twentyFiveDigitsCount !== 25 && new Date().getTime() - startMillis < 1000);
 
@@ -262,6 +241,7 @@
             }
 
             document.getElementById('generatedPassword').value = password;
+            updatePasswordStrength(password);
         }
 
         const theme = localStorage.getItem('theme');
@@ -286,8 +266,12 @@
             });
 
             document.getElementById('lengthText').addEventListener('input', function () {
-                this.value = parseInt(this.value);
-                if (this.value > 60) this.value = 60;
+                let value = parseInt(this.value);
+                if (isNaN(value) || value < 1) {
+                    this.value = 1;
+                } else if (value > 60) {
+                    this.value = 60;
+                }
                 document.getElementById('length').value = this.value;
                 generatePassword();
             });
@@ -305,6 +289,21 @@
                     }, i * 1);
                 }
 
+                generatePassword();
+            });
+
+            document.getElementById('resetButton').addEventListener('click', function () {
+                document.getElementById('length').value = 19;
+                document.getElementById('lengthText').value = 19;
+                document.getElementById('uppercase').checked = true;
+                document.getElementById('lowercase').checked = true;
+                document.getElementById('numbers').checked = true;
+                document.getElementById('specialChars').checked = false;
+                document.getElementById('uppercasePercent').value = 25;
+                document.getElementById('lowercasePercent').value = 25;
+                document.getElementById('numbersPercent').value = 25;
+                document.getElementById('specialCharsPercent').value = 25;
+                document.getElementById('pattern').value = 'xxxx-';
                 generatePassword();
             });
 
