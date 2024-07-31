@@ -2,6 +2,8 @@
 
 A simple password generator with settings to customize the generated password.
 
+[![Password Generator](./screen.png)](https://exelvi.github.io/password_generator/)
+
 ## Features
 - Change the length of the password
 - Include uppercase letters
