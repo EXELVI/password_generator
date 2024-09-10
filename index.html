@@ -186,20 +186,20 @@
         function changeTheme(theme) {
             var themeButton = document.getElementById('changeTheme');
             if (!theme) {
-                var temaaaStorage = localStorage.getItem('tema');
+                var temaaaStorage = localStorage.getItem('theme');
                 if (temaaaStorage != "dark") {
                     document.body.setAttribute('data-bs-theme', "dark");
-                    localStorage.setItem('tema', "dark");
+                    localStorage.setItem('theme', "dark");
                     themeButton.innerHTML = "<i class=\"bi bi-sun-fill\"></i> Change theme";
                 }
                 else {
                     document.body.setAttribute('data-bs-theme', "light");
-                    localStorage.setItem('tema', "light")
+                    localStorage.setItem('theme', "light")
                     themeButton.innerHTML = "<i class=\"bi bi-moon-stars-fill\"></i> Change theme";
                 }
             } else if (theme === 'dark' || theme === 'light') {
                 document.body.setAttribute('data-bs-theme', theme);
-                localStorage.setItem('tema', theme);
+                localStorage.setItem('theme', theme);
                 themeButton.innerHTML = theme === 'dark' ? "<i class=\"bi bi-sun-fill\"></i> Change theme" : "<i class=\"bi bi-moon-stars-fill\"></i> Change theme";
             }
         }
@@ -352,7 +352,7 @@
             updatePasswordStrength(password);
         }
 
-        const theme = localStorage.getItem('tema');
+        const theme = localStorage.getItem('theme');
         if (theme) {
             changeTheme(theme);
         }
@@ -364,7 +364,7 @@
         document.addEventListener('DOMContentLoaded', function () {
 
             document.getElementById('resetButton').addEventListener('click', function () {
-                localStorage.setItem("settings", JSON.stringify(defaultSettings));
+                localStorage.setItem("passSettings", JSON.stringify(defaultSettings));
                 settings = defaultSettings;
                 document.getElementById('length').value = 19;
                 document.getElementById('lengthText').value = 19;
@@ -381,7 +381,7 @@
                 location.reload();
             });
 
-            settings = JSON.parse(localStorage.getItem("settings")) || settings;
+            settings = JSON.parse(localStorage.getItem("passSettings")) || settings;
 
             document.getElementById('length').value = settings.length;
             document.getElementById('lengthText').value = settings.length;
@@ -423,7 +423,7 @@
 
 
             window.addEventListener("beforeunload", function () {
-                localStorage.setItem("settings", JSON.stringify(settings));
+                localStorage.setItem("passSettings", JSON.stringify(settings));
             });
 
 
